@@ -2,15 +2,14 @@ package main
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"log"
 	"log/slog"
 	"os"
-	"thoughtRestApi/internal/config"
-	"thoughtRestApi/internal/logger"
-	"thoughtRestApi/internal/repository/postgresql"
+	"thought-RestAPI/internal/config"
+	"thought-RestAPI/internal/logger"
+	"thought-RestAPI/internal/repository/postgresql"
 )
 
 func main() {
