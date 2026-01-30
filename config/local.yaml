@@ -1,0 +1,15 @@
+# local, dev, prod
+env: "local"
+
+http_server:
+  address: "localhost:8888"
+  timeout: 4s
+  idle_timeout: 60s
+
+database_url: "postgres://postgres:TESTPASSWORD@localhost:20061/postgres"
+
+  #GOOSE_DRIVER=postgres
+  #GOOSE_DBSTRING=postgres://postgres:cucumber997@localhost:20061/postgres
+  #GOOSE_MIGRATION_DIR=./migrations
+  #POSTGRES_PORT=20061
+  #POSTGRES_PASSWORD=cucumber997
