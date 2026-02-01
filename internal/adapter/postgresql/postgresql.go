@@ -5,20 +5,31 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"thought-RestAPI/internal/model"
+	"log/slog"
+	"thought-RestAPI/internal/domain"
 )
 
 type PostgreSQL struct {
 	db *pgxpool.Pool
 }
 
-func New(db *pgxpool.Pool) *PostgreSQL {
-	return &PostgreSQL{
-		db: db,
+func New(ctx context.Context, databaseURL string, log *slog.Logger) (*PostgreSQL, error) {
+	log.Info("Connecting to database")
+	conn, err := pgxpool.New(ctx, databaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("error connecting to database %s", err.Error())
 	}
+	log.Info("Successfully connected to database")
+	return &PostgreSQL{
+		db: conn,
+	}, nil
 }
 
-func (pgsql *PostgreSQL) GetRandomThought(ctx context.Context) (*model.Thought, error) {
+func (pgsql *PostgreSQL) Close() {
+	pgsql.db.Close()
+}
+
+func (pgsql *PostgreSQL) GetRandomThought(ctx context.Context) (*domain.Thought, error) {
 	row := pgsql.db.QueryRow(ctx,
 		`SELECT id, text, author 
 		 FROM thoughts 
@@ -26,7 +37,7 @@ func (pgsql *PostgreSQL) GetRandomThought(ctx context.Context) (*model.Thought, 
 		 ORDER BY id 
 		 LIMIT 1`)
 
-	var t model.Thought
+	var t domain.Thought
 	err := row.Scan(&t.ID, &t.Text, &t.Author)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -38,14 +49,11 @@ func (pgsql *PostgreSQL) GetRandomThought(ctx context.Context) (*model.Thought, 
 	return &t, nil
 }
 
-func (p *PostgreSQL) CreateThought(
-	ctx context.Context,
-	text, author string,
-) (int64, error) {
+func (pgsql *PostgreSQL) CreateThought(ctx context.Context, text, author string) (int64, error) {
 
 	var id int64
 
-	err := p.db.QueryRow(
+	err := pgsql.db.QueryRow(
 		ctx,
 		"INSERT INTO thoughts (text, author) VALUES ($1, $2) RETURNING id",
 		text,

@@ -1,6 +1,6 @@
-package model
+package dto
 
-type Thought struct {
+type UpdateThoughtInput struct {
 	ID     int64  `json:"id"`
 	Text   string `json:"text"`
 	Author string `json:"author"`
