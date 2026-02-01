@@ -42,11 +42,11 @@ func (pgsql *PostgreSQL) Close() {
 
 func (pgsql *PostgreSQL) GetRandomThought(ctx context.Context) (*domain.Thought, error) {
 	row := pgsql.db.QueryRow(ctx,
-		`SELECT id, text, author 
-		 FROM thoughts 
-		 WHERE id >= (SELECT floor(random() * (SELECT max(id) FROM thoughts))::bigint)
-		 ORDER BY id 
-		 LIMIT 1`)
+		`SELECT id, text, author
+				FROM thoughts
+				ORDER BY random()
+				LIMIT 1;
+				`)
 
 	var t domain.Thought
 	err := row.Scan(&t.ID, &t.Text, &t.Author)

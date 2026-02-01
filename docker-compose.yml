@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: thoughts-postgres
+    ports:
+      - "20061:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: TESTPASSWORD
+      POSTGRES_DB: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
