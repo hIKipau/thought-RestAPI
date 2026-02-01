@@ -2,26 +2,37 @@ package postgresql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
 	"thought-RestAPI/internal/domain"
+	"time"
 )
 
 type PostgreSQL struct {
-	db *pgxpool.Pool
+	db  *pgxpool.Pool
+	log *slog.Logger
 }
 
 func New(ctx context.Context, databaseURL string, log *slog.Logger) (*PostgreSQL, error) {
 	log.Info("Connecting to database")
 	conn, err := pgxpool.New(ctx, databaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("error connecting to database %s", err.Error())
+		return nil, fmt.Errorf("error connecting to database: %w", err)
+	}
+	ctxPing, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	if err := conn.Ping(ctxPing); err != nil {
+		return nil, fmt.Errorf("ping database: %w", err)
 	}
 	log.Info("Successfully connected to database")
+
 	return &PostgreSQL{
-		db: conn,
+		db:  conn,
+		log: log,
 	}, nil
 }
 
@@ -40,8 +51,8 @@ func (pgsql *PostgreSQL) GetRandomThought(ctx context.Context) (*domain.Thought,
 	var t domain.Thought
 	err := row.Scan(&t.ID, &t.Text, &t.Author)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return nil, fmt.Errorf("no thoughts found: %w", err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrThoughtNotFound
 		}
 		return nil, fmt.Errorf("get random thought: %w", err)
 	}
@@ -73,7 +84,7 @@ func (pgsql *PostgreSQL) DeleteThought(ctx context.Context, id int64) error {
 		return fmt.Errorf("delete thought: %w", err)
 	}
 	if cmdTag.RowsAffected() == 0 {
-		return fmt.Errorf("delete thought: no row with id %d", id)
+		return domain.ErrThoughtNotFound
 	}
 	return nil
 }
@@ -90,7 +101,7 @@ func (pgsql *PostgreSQL) UpdateThought(ctx context.Context, id int64, text strin
 		return fmt.Errorf("update thought: %w", err)
 	}
 	if cmdTag.RowsAffected() == 0 {
-		return fmt.Errorf("update thought: no row with id %d", id)
+		return domain.ErrThoughtNotFound
 	}
 	return nil
 }

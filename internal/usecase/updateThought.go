@@ -3,15 +3,20 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"thought-RestAPI/internal/dto"
 )
 
-func (t *Thought) UpdateThought(ctx context.Context, input dto.UpdateThoughtInput) error {
+type UpdateThoughtInput struct {
+	ID     int64
+	Text   string
+	Author string
+}
+
+func (t *Thought) UpdateThought(ctx context.Context, input UpdateThoughtInput) error {
 	const op = "internal/usecase/UpdateThought"
 
-	err := t.thoughtRepository.UpdateThought(ctx, input.ID, input.Text, input.Author)
+	err := t.repo.UpdateThought(ctx, input.ID, input.Text, input.Author)
 	if err != nil {
-		return fmt.Errorf("%s: Cant update thought, error: %s", op, err.Error())
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	return nil

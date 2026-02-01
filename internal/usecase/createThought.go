@@ -3,17 +3,20 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"thought-RestAPI/internal/dto"
 )
 
-func (t *Thought) CreateThought(ctx context.Context, input dto.CreateThoughtInput) (dto.CreateThoughtOutput, error) {
+type CreateThoughtInput struct {
+	Text   string
+	Author string
+}
+
+func (t *Thought) CreateThought(ctx context.Context, input CreateThoughtInput) (int64, error) {
 	const op = "internal/usecase/CreateThought"
 
-	ID, err := t.thoughtRepository.CreateThought(ctx, input.Text, input.Author)
+	ID, err := t.repo.CreateThought(ctx, input.Text, input.Author)
 	if err != nil {
-		return dto.CreateThoughtOutput{}, fmt.Errorf("%s: Cant create thought, error: %s", op, err.Error())
+		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
-	output := dto.CreateThoughtOutput{ID: ID}
-	return output, nil
+	return ID, nil
 }

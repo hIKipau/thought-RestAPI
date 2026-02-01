@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -22,7 +23,7 @@ func Run(ctx context.Context, cfg *config.Config, log *slog.Logger) error {
 	if err != nil {
 		return fmt.Errorf("%s: Failed to connect to database. Error: %s", op, err.Error())
 	}
-
+	defer pgsql.Close()
 	thought := usecase.NewThought(pgsql)
 
 	router := httpRouter.Router(thought)
@@ -35,8 +36,9 @@ func Run(ctx context.Context, cfg *config.Config, log *slog.Logger) error {
 	}
 
 	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			log.Error("failed to start server")
+		err := srv.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Error("listen", slog.String("err", err.Error()))
 		}
 	}()
 
@@ -51,7 +53,6 @@ func Run(ctx context.Context, cfg *config.Config, log *slog.Logger) error {
 	defer cancel()
 
 	_ = srv.Shutdown(ctxShutdown)
-	pgsql.Close()
 
 	return nil
 }

@@ -3,15 +3,14 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"thought-RestAPI/internal/dto"
 )
 
-func (t *Thought) DeleteThought(ctx context.Context, input dto.DeleteThoughtInput) error {
+func (t *Thought) DeleteThought(ctx context.Context, id int64) error {
 	const op = "internal/usecase/DeleteThought"
 
-	err := t.thoughtRepository.DeleteThought(ctx, input.ID)
+	err := t.repo.DeleteThought(ctx, id)
 	if err != nil {
-		return fmt.Errorf("%s: Cant delete thought, error: %s", op, err.Error())
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	return nil

@@ -3,21 +3,16 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"thought-RestAPI/internal/dto"
+	"thought-RestAPI/internal/domain"
 )
 
-func (t *Thought) GetRandomThought(ctx context.Context) (dto.GetRandomThoughtOutput, error) {
+func (t *Thought) GetRandomThought(ctx context.Context) (*domain.Thought, error) {
 	const op = "internal/usecase/GetRandomThought"
 
-	thought, err := t.thoughtRepository.GetRandomThought(ctx)
+	thought, err := t.repo.GetRandomThought(ctx)
 	if err != nil {
-		return dto.GetRandomThoughtOutput{}, fmt.Errorf("%s: Cant get thought, error: %s", op, err.Error())
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	output := dto.GetRandomThoughtOutput{ID: thought.ID,
-		Text:   thought.Text,
-		Author: thought.Author,
-	}
-
-	return output, nil
+	return thought, nil
 }

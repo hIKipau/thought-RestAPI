@@ -13,9 +13,9 @@ type ThoughtRepository interface {
 }
 
 type Thought struct {
-	thoughtRepository ThoughtRepository
+	repo ThoughtRepository
 }
 
-func NewThought(thoughtRepository ThoughtRepository) *Thought {
-	return &Thought{thoughtRepository: thoughtRepository}
+func NewThought(repo ThoughtRepository) *Thought {
+	return &Thought{repo: repo}
 }
